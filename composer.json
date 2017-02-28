@@ -1,0 +1,25 @@
+{
+    "name" : "juistdit/pdfen-php-sdk",
+    "description" : "An SDK allowing easy conversion from any supported format to PDF using the PDFen.com API",
+    "keywords" : ["pdf", "pdfen", "sdk"],
+    "type" :  "library",
+    "homepage" : "https://github.com/juistdit/pdfen-php-sdk",
+    "license" : "MIT",
+    "authors" : [
+        {
+                "name" : "JuistdIT",
+                "homepage" : "https://github.com/juistdit/pdfen-php-sdk/contributors"
+        }
+    ],
+    "require" : {
+         "php": "^7.0"
+    },	
+    "autoload": {
+        "psr-4" : {
+            "PDFen\\" : "src/PDFen"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.0"
+    }
+}
