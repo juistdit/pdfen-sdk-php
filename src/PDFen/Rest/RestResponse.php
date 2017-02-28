@@ -16,13 +16,12 @@ abstract class RestResponse
 
     private static $_exceptionTranslationTable = [
         'DEFAULT' => '\PDFen\Exceptions\ApiException',
-        'Company not found attached with you.' => '\PDFen\Exceptions\NoAccessException',
-        'You did not sign in correctly or your account is temporarily disabled.' => '\PDFen\Exceptions\AuthorizationException'
+        401 => '\PDFen\Exceptions\AuthorizationException',
     ];
 
     private function _getExceptionType() {
-        if(isset($this->body['message']) && isset(self::$_exceptionTranslationTable[$this->body['message']])) {
-            return self::$_exceptionTranslationTable[$this->body['message']];
+        if(isset($this->body['code']) && isset(self::$_exceptionTranslationTable[$this->body['code']])) {
+            return self::$_exceptionTranslationTable[$this->body['code']];
         }
         return self::$_exceptionTranslationTable['DEFAULT'];
     }
@@ -30,11 +29,6 @@ abstract class RestResponse
     private function _getExceptionMessage() {
         if (isset($this->body['message'])) {
             $message = $this->body['message'];
-            if (isset($this->body['parameters'])) {
-                foreach($this->body['parameters'] as $key => $value) {
-                    $message = str_replace("%$key", json_encode($value), $message);
-                }
-            }
             return $message;
         } else {
             return "Something went wrong when communicating with the API";
