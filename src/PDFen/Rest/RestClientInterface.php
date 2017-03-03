@@ -13,7 +13,7 @@ interface RestClientInterface
 {
     public function __construct($api_url);
 
-    public function GET($url, $headers = []) ;
+    public function GET($url, $headers = [], $writeFunction = null) ;
 
     public function PATCH($url, $data, $headers = []) ;
 

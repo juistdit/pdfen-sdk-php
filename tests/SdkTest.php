@@ -49,4 +49,16 @@ class SdkTest extends TestCase
             $this->assertTrue(true);
         }
     }
+
+    public function testLanguage() {
+        $config['language'] = 'nl-NL';
+        $sdk = new PDFenSdk($this->_config);
+        $msg = "";
+        try {
+            $sdk->login("Invalid Username", "Invalid Password");
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+        }
+        if
+    }
 }

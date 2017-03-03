@@ -15,20 +15,21 @@ class Sdk {
     public function __construct(array $config) {
         $this->_config = array_merge([
             'api_url' => static::API_URL,
-            'http_client' => static::HTTP_CLIENT
+            'http_client' => static::HTTP_CLIENT,
+            'language' => 'en-US',
         ], $config);
         $clientClass = $this->_config['http_client'];
         $this->_apiClient = new $clientClass($this->_config['api_url']);
     }
 
-    public function login($username, $password){
+    public function login($username, $password) {
         //retrieve the token
         $api = $this->_apiClient;
-        $response = $api->POST('sessions', ['username'=>$username, 'password'=>$password]);
+        $response = $api->POST('sessions', ['username'=>$username, 'password'=>$password], ['accept-language' => $this->_config['language']]);
         if ($response->isError()) {
             throw $response->asException();
         }
         $token = $response->body['session_id'];
-        return new Session($this->_apiClient, $token);
+        return new Session($this->_apiClient, $token, $this->_config['language']);
     }
 }

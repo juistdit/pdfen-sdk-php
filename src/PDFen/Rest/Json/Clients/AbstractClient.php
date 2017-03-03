@@ -8,10 +8,10 @@ use PDFen\Rest\RestClientInterface;
 abstract class AbstractClient implements RestClientInterface
 {
 
-    abstract protected function sendRequest($method, $url, array $headers = [], array $data = null);
+    abstract protected function sendRequest($method, $url, array $headers = [], $data = null);
 
-    public function GET($url, $headers = []) {
-        return $this->sendRequest('GET', $url, $headers);
+    public function GET($url, $headers = [], $writeFunction = null) {
+        return $this->sendRequest('GET', $url, $headers, null, $writeFunction);
     }
 
     public function PATCH($url, $data, $headers = []) {
