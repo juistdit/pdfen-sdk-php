@@ -8,6 +8,7 @@
 
 namespace PDFen\Rest\Json;
 
+use PDFen\Rest\RestResponse;
 
 class EmptyResponse extends RestResponse
 {
@@ -16,6 +17,9 @@ class EmptyResponse extends RestResponse
     {
         if (isset($opts['status'])) {
             $this->status = $opts['status'];
+        }
+        if(isset($opts['url'])) {
+            $this->url = $opts['url'];
         }
         if (isset($opts['header'])) {
             //split header and body

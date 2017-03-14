@@ -26,10 +26,12 @@ class ConversionResult
         $error_body = '';
         $error_response = null;
         $error = false;
+        $url = $this->url;
+
         if(is_bool($target)) {
             if($target) {
                 $return = '';
-                $this->_apiClient->GET($this->url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$return) {
+                $this->_apiClient->GET($url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$return) {
                     if ($response->status > 299) {
                         //error
                         $error = true;
@@ -39,12 +41,12 @@ class ConversionResult
                         $return .= $data;
                     }
                     return true;
-                });
+                }, true);
                 if(!$error) {
                     return $return;
                 }
             } else {
-                $this->_apiClient->GET($this->url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$return) {
+                $this->_apiClient->GET($url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$return) {
                     if ($response->status > 299) {
                         //error
                         $error = true;
@@ -55,7 +57,7 @@ class ConversionResult
                     }
 
                     return true;
-                });
+                }, true);
                 if (!$error) {
                     return;
                 }
@@ -66,7 +68,7 @@ class ConversionResult
             fclose($fh);
             return;
         } else if(is_resource($target) && get_resource_type($target) === 'stream') {
-            $this->_apiClient->GET($this->url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$target) {
+            $this->_apiClient->GET($url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$target) {
                 if ($response->status > 299) {
                     //error
                     $error = true;
@@ -76,12 +78,12 @@ class ConversionResult
                     fwrite($target, $data);
                 }
                 return true;
-            });
+            }, true);
             if (!$error) {
                 return;
             }
         } else if($target instanceof \SplFileObject){
-            $this->_apiClient->GET($this->url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$target) {
+            $this->_apiClient->GET($url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$target) {
                 if ($response->status > 299) {
                     //error
                     $error = true;
@@ -91,7 +93,7 @@ class ConversionResult
                     $target->fwrite($data);
                 }
                 return true;
-            });
+            }, true);
             if (!$error) {
                 return;
             }

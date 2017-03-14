@@ -13,6 +13,9 @@ class JsonResponse extends RestResponse
         if(isset($opts['status'])) {
             $this->status = $opts['status'];
         }
+        if(isset($opts['url'])) {
+            $this->url = $opts['url'];
+        }
         if(isset($opts['raw_body'])) {
             $raw_body = $opts['raw_body'];
             //split header and body

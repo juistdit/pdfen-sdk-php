@@ -40,7 +40,7 @@ class Options extends SessionObject
         }
 
         if(!$temp->getField($name)->isCorrectValue($val)){
-            $type = $temp->getField($name)->type;
+            $type = $temp->getField($name)->getType();
             throw new InvalidArgumentException("The value $val was not in the format corresponding to $type");
         }
         if($val instanceof \DateTime){
@@ -53,7 +53,7 @@ class Options extends SessionObject
         $this->_integrityChecks();
         $template_id = $this->_getField('template_id');
         if(!isset($this->_template) || $this->_template->getUUID() !== $template_id) {
-            $this->_template = new Template($this->_apiClient, $this->_session, 'sessions\\'. $this->_session->getUUID() . '\templates\\' . $template_id);
+            $this->_template = new Template($this->_apiClient, $this->_session, $this->_language, 'sessions/'. $this->_session->getUUID() . '/templates/' . $template_id);
         }
         return $this->_template;
     }

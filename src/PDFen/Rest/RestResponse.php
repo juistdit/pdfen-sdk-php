@@ -5,6 +5,7 @@ namespace PDFen\Rest;
 
 abstract class RestResponse
 {
+    public $url;
     public $status;
     public $headers;
     public $body;
@@ -31,6 +32,7 @@ abstract class RestResponse
             $message = $this->body['message'];
             return $message;
         } else {
+            var_dump($this);
             return "Something went wrong when communicating with the API";
         }
     }

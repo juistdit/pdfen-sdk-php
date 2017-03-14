@@ -30,6 +30,7 @@ class Sdk {
             throw $response->asException();
         }
         $token = $response->body['session_id'];
-        return new Session($this->_apiClient, $token, $this->_config['language']);
+        $immediate_mode = isset($this->_config['__immediate_mode']) && $this->_config['__immediate_mode'];
+        return new Session($this->_apiClient, $token, $this->_config['language'], $immediate_mode);
     }
 }

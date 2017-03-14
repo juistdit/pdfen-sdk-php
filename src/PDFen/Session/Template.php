@@ -9,6 +9,7 @@
 namespace PDFen\Session;
 
 
+use PDFen\Exceptions\IllegalStateException;
 use PDFen\Exceptions\NoSuchValueException;
 
 class Template extends SessionObject
@@ -19,6 +20,10 @@ class Template extends SessionObject
     private function _ensureFields() {
         if(!isset($this->_fields) || $this->_fields === null){
             $raw_fields = $this->_getField('fields');
+            if($raw_fields === null){
+                $this->refresh();
+                $raw_fields = $this->_getField('fields');
+            }
             $fields = [];
             foreach($raw_fields as $raw_field){
                 $fields[$raw_field['field_id']] = new TemplateField($this->_session, $raw_field);

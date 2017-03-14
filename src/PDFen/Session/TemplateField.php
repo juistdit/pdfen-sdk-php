@@ -9,6 +9,8 @@
 namespace PDFen\Session;
 
 
+use PDFen\Exceptions\IllegalStateException;
+use PDFen\Exceptions\NoSuchValueException;
 use PDFen\Session;
 
 class TemplateField
@@ -35,7 +37,7 @@ class TemplateField
                 case 'number':
                     return is_numeric($value);
                 case 'single_line':
-                    return strpos($value, "\n") !== false;
+                    return strpos($value, "\n") === false;
                 case 'datetime':
                     if ($value instanceof \DateTime) {
                         return true;
@@ -90,7 +92,20 @@ class TemplateField
 
     public function getType() {
         $this->_integrityChecks();
-        return $this->_data['type'];
+        $type = $this->_data['type'];
+        if(is_array($type)){
+            return $type['type'];
+        }
+        return $type;
+    }
+
+    public function getAllowedValues() {
+        $this->_integrityChecks();
+        $type = $this->_data['type'];
+        if(!is_array($type)) {
+            throw new NoSuchValueException("The type of this field does not support getAllowedValues.");
+        }
+        return $type['values'];
     }
 
     public function getMinimalLicenseLevel() {

@@ -9,6 +9,7 @@ use PDFen\Exceptions\NoSuchValueException;
 use PDFen\Rest\RestClientInterface;
 use PDFen\Session\File;
 use PDFen\Session\Options;
+use PDFen\Session\Template;
 
 class Session
 {
@@ -27,18 +28,21 @@ class Session
     private $_allFiles;
     private $_isDeleted;
 
-    public function __construct (RestClientInterface $apiClient, $token, $language) {
+    private $_immediate_mode;
+
+    public function __construct (RestClientInterface $apiClient, $token, $language, $immediate_mode) {
         $this->_apiClient = $apiClient;
         $this->_token = $token;
         $this->_language = $language;
         $this->_data = null;
-        $this->_options = new Options($this->_apiClient, $this, "sessions\$token\options");
+        $this->_options = new Options($this->_apiClient, $this, $this->_language, "sessions/$token/options");
         $this->_changedData = [];
         $this->_changedOrdering = null;
         $this->_ordering = null;
         $this->_templates = null;
         $this->_isDeleted = false;
         $this->_allFiles = [];
+        $this->_immediate_mode = $immediate_mode;
     }
 
     private function _ensureData () {
@@ -67,6 +71,16 @@ class Session
         $this->_integrityChecks();
         $this->_ensureTemplates();
         return $this->_templates;
+    }
+
+    public function getTemplateByName($name) {
+        $templates = $this->getTemplates();
+        foreach($templates as $template) {
+            if($template->getName() === $name) {
+                return $template;
+            }
+        }
+        throw new NoSuchValueException("No template with name $name exists.");
     }
 
     public function getOptions() {
@@ -159,21 +173,46 @@ class Session
         return $output;
     }
 
-    public function newFile($file = null) {
+    public function newFile($file = null,  $title = null, $extension = null) {
         $this->_integrityChecks();
-        $pdfenFile = new File($this->_apiClient, $this);
+        $pdfenFile = new File($this->_apiClient, $this, $this->_language);
         if($file !== null) {
             $pdfenFile->setData($file);
         }
+        if(is_string($file)){
+            $pdfenFile->setTitle(pathinfo($file, PATHINFO_FILENAME));
+            $pdfenFile->setExtension(pathinfo($file, PATHINFO_EXTENSION));
+        } else if($file instanceof \SplFileInfo){
+            $pdfenFile->setExtension($file->getExtension());
+            $pdfenFile->setTitle($file->getBasename($file->getExtension()));
+        } else {
+            $pdfenFile->setTitle($this->_language === "en-US" ? "untitled" : "naamloos");
+        }
+
+        if($title !== null) {
+            $pdfenFile->setTitle($title);
+        }
+        if($extension !== null){
+            $pdfenFile->setExtension($extension);
+        }
+
         $this->_allFiles[] = $pdfenFile;
         return $pdfenFile;
     }
 
-    public function newFileFromBlob($file) {
+    public function newFileFromBlob($file, $title = null, $extension = null) {
         $this->_integrityChecks();
-        $pdfenFile = new File($this->_apiClient, $this);
+        $pdfenFile = new File($this->_apiClient, $this, $this->_language);
         if($file !== null) {
             $pdfenFile->setDataBlob($file);
+        }
+        if($title === null) {
+            $pdfenFile->setTitle($this->_language === "en-US" ? "untitled" : "naamloos");
+        } else {
+            $pdfenFile->setTitle($title);
+        }
+        if($extension !== null){
+            $pdfenFile->setExtension($extension);
         }
         $this->_allFiles[] = $pdfenFile;
         return $pdfenFile;
@@ -268,7 +307,7 @@ class Session
             if ($response->isError()) {
                 throw $response->asException();
             }
-            $this->_changedOrdering = [];
+            $this->_changedOrdering = null;
         }
         $this->refresh();
     }
@@ -313,38 +352,79 @@ class Session
         $templates = [];
         $raw_templates = $response->body;
         foreach ($raw_templates as $raw_template) {
-            $template = new TemplateInfo($this->_apiClient, $this, 'session/' . $this->getUUID() . '/files/templates/' . $raw_template['template_id']);
+            $template = new Template($this->_apiClient, $this, $this->_language, 'sessions/' . $this->getUUID() . '/templates/' . $raw_template['template_id']);
             $template->_pushUpdate($raw_template);
             $templates[] = $template;
         }
         $this->_templates = $templates;
     }
 
+    public function batch($onProgress = null){
+        $opt = $this->getOptions()->getOption("typeofaction");
+        $this->getOptions()->update();
+
+        $this->getOptions()->setOption("typeofaction", "batch");
+        $this->getOptions()->update();
+
+        $result = $this->convert($onProgress);
+
+        $this->getOptions()->setOption("typeofaction", $opt);
+        $this->getOptions()->update();
+
+        return $result;
+    }
+
+    public function merge($onProgress = null) {
+        $opt = $this->getOptions()->getOption("typeofaction");
+        $this->getOptions()->update();
+
+        $this->getOptions()->setOption("typeofaction", "merge");
+        $this->getOptions()->update();
+
+        $result = $this->convert($onProgress);
+
+        $this->getOptions()->setOption("typeofaction", $opt);
+        $this->getOptions()->update();
+
+        return $result;
+    }
+
     public function convert($onProgress = null) {
         $this->_integrityChecks();
-        if(!is_callback($onProgress)) {
+        if(!is_callable($onProgress)) {
             $onProgress = function () { };
         }
-        $data = ['process_settings' => ['process_synchronous' => false, 'immediate' => false]];
+        $data = ['process_settings' => ['process_synchronous' => false, 'immediate' => $this->_immediate_mode]];
         $token = $this->_token;
         $apiClient = $this->_apiClient;
-        $response = $apiClient->POST("sessions/$token/processes", $data, ['accept-language' => $this->_language]);
+        $response = $apiClient->POST("sessions/$token/processes?update_counter=0", $data, ['accept-language' => $this->_language]);
         if($response->isError()) {
             throw $response->asException();
         }
         $process_id = $response->body['process_id'];
+        $update_counter = $response->body['process_progress']['update_counter'];
         //provide progress results
         while(!isset($response->body['process_result'])) {
-            $onProgress($response->body['process_progress']['lines'], $response->body['process_progress']['previous_line']);
-            $update_counter = $response->body['process_result']['update_counter'];
+            if(isset($response->body['process_progress']['lines']) &&
+                (count($response->body['process_progress']['lines']) > 0 || isset($response->body['process_progress']['previous_line']))) {
+                $prev_line = isset($response->body['process_progress']['previous_line']) ? $response->body['process_progress']['previous_line'] : null;
+                $onProgress($response->body['process_progress']['lines'], $prev_line);
+                $update_counter = $response->body['process_progress']['update_counter'];
+            }
             $url = "sessions/$token/processes/$process_id?long_pull_timeout=10000&update_counter=$update_counter";
             $response = $apiClient->GET($url, ['accept-language' => $this->_language]);
             if($response->isError()) {
                 throw $response->asException();
             }
         }
+        //we still need to send the progress to the progress function...
+        if(isset($response->body['process_progress']['lines']) &&
+            (count($response->body['process_progress']['lines']) > 0 || isset($response->body['process_progress']['previous_line']))) {
+            $prev_line = isset($response->body['process_progress']['previous_line']) ? $response->body['process_progress']['previous_line'] : null;
+            $onProgress($response->body['process_progress']['lines'], $prev_line);
+        }
         //the process has finished succesfully
-        return new ConversionResult($apiClient, $response->body['process_result']);
+        return new Session\ConversionResult($apiClient, $response->body['process_result']);
     }
 
     public function delete() {

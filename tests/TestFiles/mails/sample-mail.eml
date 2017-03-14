@@ -1,0 +1,40 @@
+Received: from asusjurn (54187211.cm-5-1b.dynamic.ziggo.nl. [84.24.114.17])
+        by smtp.gmail.com with ESMTPSA id o63sm51205wmo.30.2017.03.07.03.19.43
+        for <juistdittest@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 07 Mar 2017 03:19:43 -0800 (PST)
+From: "Microsoft Outlook" <juistdittest@gmail.com>
+To: "JuistdIT Test" <juistdittest@gmail.com>
+Subject: Testbericht van Microsoft Outlook
+Date: Tue, 7 Mar 2017 12:19:43 +0100
+Message-ID: <58be974f.42281c0a.10cb6.04c8@mx.google.com>
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0143_01D2973D.D887BFA0"
+X-Mailer: Microsoft Outlook 16.0
+Thread-Index: AQJ2mIqO4PeCcjY98a3D3iZjHPPMQA==
+
+This is a multipart message in MIME format.
+
+------=_NextPart_000_0143_01D2973D.D887BFA0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Dit e-mailbericht is bij het testen van de instellingen voor uw account =
+automatisch verzonden vanuit Microsoft Outlook.=20
+
+
+------=_NextPart_000_0143_01D2973D.D887BFA0
+Content-Type: text/html;
+	boundary="----=_NextPart_000_0000_01D2973D.19F2D6B0";
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dutf-8">
+<body><p>Dit e-mailbericht is bij het testen van de instellingen voor uw =
+account automatisch verzonden vanuit Microsoft Outlook.
+</p></body></html>
+------=_NextPart_000_0143_01D2973D.D887BFA0--

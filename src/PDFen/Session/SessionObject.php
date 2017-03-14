@@ -16,6 +16,7 @@ abstract class SessionObject
     protected $_apiClient;
     protected $_resource;
     protected $_session;
+    protected $_language;
 
     private $_data;
     private $_changedData;
@@ -26,13 +27,14 @@ abstract class SessionObject
      * @param \PDFen\Session $session
      * @param null $resource leave null if the file is not yet created.
      */
-    public function __construct($apiClient, \PDFen\Session $session, $resource = null){
+    public function __construct($apiClient, \PDFen\Session $session, $language, $resource = null){
         $this->_apiClient = $apiClient;
         $this->_session = $session;
         $this->_resource = $resource;
         $this->_data = null;
         $this->_changedData = [];
         $this->_isDeleted = false;
+        $this->_language = $language;
     }
 
     private function _ensureData() {
@@ -42,6 +44,7 @@ abstract class SessionObject
     }
 
     protected function _getField($name) {
+        $this->_ensureData();
         $this->_integrityChecks();
         if(is_string($name)){
             return $this->_getField([$name]);
@@ -81,8 +84,8 @@ abstract class SessionObject
         if(is_string($name)){
             return $this->_setField([$name], $value);
         }
-        $data = $this->_changedData;
-        $last_field = array_pop($data);
+        $data = &$this->_changedData;
+        $last_field = array_pop($name);
         foreach($name as $field) {
             if(isset($data[$field])) {
                 $data = &$data[$field];

@@ -70,26 +70,27 @@ class File extends SessionObject
         $this->_setField(['file_settings', 'extension'], $extension);
     }
 
+    public function getWarnings() {
+        return $this->_getField('warnings');
+    }
+
     public function setData($file) {
         $this->_integrityChecks();
         //we don't need to unset the url, this will be automatically done by uploading new data.
-        if(is_resource($file)) {
-            if(get_resource_type($file) !== "stream") {
-                throw new InvalidArgumentException("The \$file parameter must be either a stream, path to a file or a SplFileInfo");
-            }
-            $this->_data = $file;
-            $this->_dataType = 'stream';
-        } else if(is_object($file) && $file instanceof \SplFileObject) {
+        if(is_object($file) && $file instanceof \SplFileObject) {
             $this->_data = $file;
             $this->_dataType = "SplFileObject";
+            return;
         } else if(is_object($file) && $file instanceof \SplFileInfo) {
             $this->_data = $file->getRealPath();
             $this->_dataType = "path";
+            return;
         } else if (is_string($file) && file_exists($file)) {
             $this->_data = $file;
             $this->_dataType = "path";
+            return;
         }
-        throw new InvalidArgumentException("The \$file parameter must be either a stream, path to a file or a SplFileInfo/SplFileObject");
+        throw new InvalidArgumentException("The \$file parameter must be either a path to a file or a SplFileInfo/SplFileObject");
     }
 
     public function setDataBlob($byte_string) {
@@ -133,17 +134,11 @@ class File extends SessionObject
         $file_id = $this->getUUID();
 
         $data = $this->_data;
+        $length = 0;
         switch($this->_dataType){
-            case "stream":
-                $read_function = function ($len) use (&$data) {
-                    if(feof($data)) {
-                        return "";
-                    }
-                    return fread($data, $len);
-                };
-                break;
             case "blob":
                 $counter = 0;
+                $length = strlen($data);
                 $read_function = function ($len) use (&$data, &$counter) {
                     if ($counter > strlen($data)) {
                         return "";
@@ -159,6 +154,7 @@ class File extends SessionObject
             case "path":
                 $data = new \SplFileObject($data);
             case "SplFileObject":
+                $length = $data->getSize() - $data->ftell();
                 $read_function = function ($len) use (&$data) {
                     if($data->eof()) {
                         return "";
@@ -168,7 +164,7 @@ class File extends SessionObject
                 break;
         }
 
-        $response = $apiClient->PUT("sessions/$session_id/files/$file_id", ['accept-language' => $this->_language], $read_function);
+        $response = $apiClient->PUT("sessions/$session_id/files/$file_id/data", ['read' => $read_function, 'length' => $length],  ['accept-language' => $this->_language]);
 
         if($response->isError()){
             throw $response->asException();

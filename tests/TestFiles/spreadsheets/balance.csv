@@ -1,0 +1,45 @@
+Balance Sheet;;
+;;
+;FY-2010;FY-2011
+Current Assets;;
+Cash;600;700
+Investments;100;500
+Inventories;0;1
+Accounts receivable;10;10
+Pre-paid expenses;100;0
+Other;;
+Total;810;1.211
+;;
+Fixed Assets;;
+Property and equipment;100.000;90.000
+Leasehold improvements;100;100
+Equity and other investments;200;200
+Less accumulated depreciation (Negative Value);-100;-85
+Total;100.200;90.215
+;;
+Other Assets;;
+Charity;200;0
+Total;200;0
+;;
+Total Assets;101.210;91.426
+;;
+Current Liabilities;;
+Accounts payable;100;350
+Accrued wages;2.000;100
+Accrued compensation;500;100
+Income taxes payable;1.000;100
+Unearned revenue;1.000;10.000
+Other;100;100
+Total;4.700;10.750
+;;
+Long-term Liabilities;;
+Mortgage payable;100;100
+Total;100;100
+;;
+Owner Equity;;
+Investment capital;100;350
+Accumulated retained earnings;0;0
+;;
+Total;100;350
+;;
+Total Liabilities & Stockholder Equity;4.900;11.200
