@@ -184,4 +184,9 @@ class File extends SessionObject
         $this->_data = null;
         $this->_dataType = null;
     }
+
+    public function __toString()
+    {
+        return 'PDFen\\Session\\File <uuid => ' . $this->getUUID() . ', extension => ' . $this->getExtension() . ', title => ' . $this->getTitle() . '>';
+    }
 }

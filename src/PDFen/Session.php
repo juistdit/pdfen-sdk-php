@@ -444,4 +444,23 @@ class Session
         }
     }
 
+    public function __toString() {
+        if($this->isDeleted()) {
+            return "PDFen\\Session <DELETED>";
+        }
+        $fields = [
+            "uuid" => $this->getUUID(),
+            "expiration_time" => $this->getExpirationTime(),
+            "creation_date" => $this->getCreationDate(),
+            "is_deleted_after_pdfen" => $this->isDeletedAfterPDFen(),
+            "number_of_files" => count(array_filter($this->_allFiles, function($f) {$f->exists();}))
+        ];
+        $output =  "PDFen\\Session <";
+        foreach($fields as $key => $value) {
+            $output .= "$key => $value";
+        }
+        $output .= ">";
+        return $output;
+    }
+
 }

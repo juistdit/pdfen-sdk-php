@@ -109,4 +109,8 @@ class ConversionResult
             throw $error_response->asException();
         }
     }
+
+    public function __result() {
+        return 'PDFen\\Session\\ConversionResult <status => '.  $this->status . ', url => ' . $this->url . '>';
+    }
 }

@@ -33,4 +33,11 @@ class Sdk {
         $immediate_mode = isset($this->_config['__immediate_mode']) && $this->_config['__immediate_mode'];
         return new Session($this->_apiClient, $token, $this->_config['language'], $immediate_mode);
     }
+
+    public function load($uuid) {
+        $api = $this->_apiClient;
+        $session = new Session($this->_apiClient, $token, $this->_config['language'], $this->_config['__immediate_mode']);
+        $session->refresh();//This checks whether the session actually exists
+        return $session;
+    }
 }
