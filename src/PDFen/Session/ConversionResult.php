@@ -29,7 +29,7 @@ class ConversionResult
         $url = $this->url;
 
         if(is_bool($target)) {
-            if($target) {
+            if ($target) {
                 $return = '';
                 $this->_apiClient->GET($url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$return) {
                     if ($response->status > 299) {
@@ -46,7 +46,16 @@ class ConversionResult
                     return $return;
                 }
             } else {
-                $this->_apiClient->GET($url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$return) {
+                $headers_sent = false;
+                $this->_apiClient->GET($url, [], function ($response, $data) use (&$error_response, &$error, &$error_body, &$return, &$headers_sent) {
+                    if(!$headers_sent) {
+                        $headers_sent = true;
+                        foreach($response->headers as $key => $value) {
+                            if(in_array($key, ['content-description', 'content-transfer-encoding', 'content-disposition', 'content-length', 'content-type'])) {
+                                header("$key: $value");
+                            }
+                        }
+                    }
                     if ($response->status > 299) {
                         //error
                         $error = true;
@@ -64,6 +73,9 @@ class ConversionResult
             }
         } else if(is_string($target)){
             $fh = fopen($target, "w");
+            if($fh === false){
+                throw new \Exception("The file $target could not be opened.");
+            }
             $this->download($fh);
             fclose($fh);
             return;
@@ -110,7 +122,7 @@ class ConversionResult
         }
     }
 
-    public function __result() {
-        return 'PDFen\\Session\\ConversionResult <status => '.  $this->status . ', url => ' . $this->url . '>';
+    public function __toString() {
+        return 'PDFen\\Session\\ConversionResult <status => '.  $this->status . ', url => ' . $this->url . ', messages =>' . join(';', $this->messages) .'>';
     }
 }

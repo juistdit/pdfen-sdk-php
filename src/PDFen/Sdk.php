@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+//declare(strict_types=1);
 
 namespace PDFen;
 
@@ -12,7 +12,10 @@ class Sdk {
     private $_config;
     private $_apiClient;
 
-    public function __construct(array $config) {
+    public function __construct(array $config = null) {
+        if($config === null){
+            $config = [];
+        }
         $this->_config = array_merge([
             'api_url' => static::API_URL,
             'http_client' => static::HTTP_CLIENT,
@@ -30,14 +33,20 @@ class Sdk {
             throw $response->asException();
         }
         $token = $response->body['session_id'];
-        $immediate_mode = isset($this->_config['__immediate_mode']) && $this->_config['__immediate_mode'];
+        $immediate_mode = isset($this->_config['immediate_mode']) ? $this->_config['immediate_mode']: true;
         return new Session($this->_apiClient, $token, $this->_config['language'], $immediate_mode);
     }
 
     public function load($uuid) {
         $api = $this->_apiClient;
-        $session = new Session($this->_apiClient, $token, $this->_config['language'], $this->_config['__immediate_mode']);
+        $immediate_mode = isset($this->_config['immediate_mode']) ? $this->_config['immediate_mode']: true;
+        $session = new Session($this->_apiClient, $uuid, $this->_config['language'], $immediate_mode);
         $session->refresh();//This checks whether the session actually exists
         return $session;
+    }
+
+    public function __toString() {
+        return "PDFen\Sdk <api_client => " . get_class($this->_apiClient) .
+            ", api_url => " . $this->_config['api_url'] . ", language => "  . $this->_config['language'] . ">";
     }
 }

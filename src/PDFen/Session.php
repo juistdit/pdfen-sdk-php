@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 
 namespace PDFen;
 
@@ -160,7 +159,7 @@ class Session
         $output = [];
         foreach ($raw_files as $raw_file) {
             if( isset($createdFilesMapping[$raw_file['file_id']]) ) {
-                $file = $createdFilesMapping[$raw_files['file_id']];
+                $file = $createdFilesMapping[$raw_file['file_id']];
                 $file->_pushUpdate($raw_file);
                 $output[$file->getUUID()] = $file;
             }  else {
@@ -176,7 +175,7 @@ class Session
     public function newFile($file = null,  $title = null, $extension = null) {
         $this->_integrityChecks();
         $pdfenFile = new File($this->_apiClient, $this, $this->_language);
-        if($file !== null) {
+        if ($file !== null) {
             $pdfenFile->setData($file);
         }
         if(is_string($file)){
@@ -228,7 +227,9 @@ class Session
         $this->_ensureData();
         $expiration_time = $this->_data['expiration_time'];
         $parts = explode(":", $expiration_time);
-        return new \DateInterval("P".$parts[0]."H".$parts[1]."M".$parts[2]."S");
+        //use diff, as it provides total amount of days between expiration
+        $dt = new \DateTime('@000000000');
+        return $dt->diff(new \DateTime('@' . ((intval($parts[0]) * 60 + intval($parts[1])) *60 + intval($parts[2]))));
     }
 
     public function setExpirationTime($expTime) {
@@ -451,14 +452,29 @@ class Session
         $fields = [
             "uuid" => $this->getUUID(),
             "expiration_time" => $this->getExpirationTime(),
-            "creation_date" => $this->getCreationDate(),
+            "creation_date" => $this->getCreationDate()->format(\DateTime::COOKIE),
             "is_deleted_after_pdfen" => $this->isDeletedAfterPDFen(),
-            "number_of_files" => count(array_filter($this->_allFiles, function($f) {$f->exists();}))
+            "number_of_files" => count(array_filter($this->fetchFiles(), function($f) { return $f->exists();}))
         ];
-        $output =  "PDFen\\Session <";
-        foreach($fields as $key => $value) {
-            $output .= "$key => $value";
+        $format = [];
+        if($fields['expiration_time']->days > 0){
+            $format[] = "%a days";
         }
+
+        if($fields['expiration_time']->h > 0){
+            $format[] = "%h hours";
+        }
+
+        if($fields['expiration_time']->m > 0){
+            $format[] = "%m minutes";
+        }
+
+        if($fields['expiration_time']->s > 0){
+            $format[] = "%s seconds";
+        }
+        $fields['expiration_time'] = $fields['expiration_time']->format(join(", ", $format));
+        $output =  "PDFen\\Session <";
+        $output .= join(", ", array_map(function($k,$v){return "$k=> $v";}, array_keys($fields), array_values($fields)));
         $output .= ">";
         return $output;
     }
